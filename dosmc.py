@@ -1,7 +1,4 @@
-Server auto down
-
-
-from mcstatus import MinecraftServer
+from mcstatus.server import MinecraftServer
 import threading
 import concurrent.futures
 import time
@@ -13,7 +10,7 @@ logging.basicConfig(filename='server_status.log', level=logging.INFO, format='%(
 
 # Fungsi untuk mendapatkan status server Minecraft dan mencatat latency
 def send_request(request_id, server_address, server_port):
-    server = MinecraftServer(server_address, server_port)
+    server = MinecraftServer.lookup(f"{server_address}:{server_port}")
     try:
         # Mencatat waktu mulai untuk mengukur latency
         start_time = time.time()
@@ -24,14 +21,14 @@ def send_request(request_id, server_address, server_port):
         print(f"Request {request_id} berhasil: Server is online, {status.players.online} players online. Max players: {status.players.max}. Latency: {latency:.2f} ms")
         
         # Menampilkan status login pemain (misalnya nama pemain yang online)
-        if status.players.online > 0:
+        if status.players.online > 0 and status.players.sample:
             print(f"Request {request_id}: Pemain online:")
             for player in status.players.sample:
                 print(f" - {player.name}")
         
         # Logging status ke file
         logging.info(f"Request {request_id} berhasil: Server is online, {status.players.online} players online. Max players: {status.players.max}. Latency: {latency:.2f} ms")
-        if status.players.online > 0:
+        if status.players.online > 0 and status.players.sample:
             for player in status.players.sample:
                 logging.info(f"Pemain online: {player.name}")
         
