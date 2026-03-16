@@ -8,7 +8,12 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+}
 
 body{
 background-color:#0d1117;
@@ -157,11 +162,9 @@ background:#2ea043;
 
 <script>
 
-let map, marker, circle;
+let map,marker,circle;
 let lastLat=null;
 let lastLng=null;
-
-/* Setup Map */
 
 map=L.map('map').setView([-2.5489,118.0149],5);
 
@@ -175,9 +178,6 @@ const districtEl=document.getElementById('district');
 const postcodeEl=document.getElementById('postcode');
 const addressEl=document.getElementById('address');
 const gmapsLinkEl=document.getElementById('gmaps-link');
-
-
-/* Haversine distance */
 
 function hitungJarak(lat1,lon1,lat2,lon2){
 
@@ -198,9 +198,6 @@ const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 return R*c;
 }
 
-
-/* GPS */
-
 if("geolocation" in navigator){
 
 navigator.geolocation.watchPosition(
@@ -220,10 +217,6 @@ statusEl.style.color="#ff7b72";
 
 }
 
-
-
-/* Update Location */
-
 async function updateLocation(position){
 
 const lat=position.coords.latitude;
@@ -237,7 +230,6 @@ coordsEl.innerText=`${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 
 gmapsLinkEl.href=`https://www.google.com/maps?q=${lat},${lng}`;
 gmapsLinkEl.style.display="block";
-
 
 if(!marker){
 
@@ -261,14 +253,11 @@ map.setView([lat,lng]);
 
 }
 
-
-
 let jarakPindah=0;
 
 if(lastLat!==null && lastLng!==null){
 jarakPindah=hitungJarak(lastLat,lastLng,lat,lng);
 }
-
 
 if(lastLat===null || jarakPindah>20){
 
@@ -279,9 +268,7 @@ districtEl.innerText="Memperbarui lokasi...";
 
 try{
 
-const response=await fetch(
-`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
-);
+const response=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
 
 const data=await response.json();
 
@@ -306,16 +293,13 @@ addressEl.innerText=data.display_name;
 }catch(err){
 
 console.error("API Limit kena block sementara:",err);
-districtEl.innerText="Gagal memuat ulang detail area.";
+districtEl.innerText="Gagal memuat ulang detail area";
 
 }
 
 }
 
 }
-
-
-/* Error */
 
 function handleError(err){
 
@@ -335,105 +319,5 @@ statusEl.style.color="#ff7b72";
 
 </script>
 
-</body>
-</html>            const accuracy = position.coords.accuracy;
-
-            statusEl.innerText = "🟢 Sinyal terkunci. Melacak secara real-time.";
-            statusEl.style.color = "#3fb950";
-
-            // Update Koordinat selalu real-time (tanpa limit)
-            coordsEl.innerText = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-            
-            // Fix Link GMaps
-            gmapsLinkEl.href = `https://www.google.com/maps?q=${lat},${lng}`;
-            gmapsLinkEl.style.display = "block";
-
-            // Update Posisi Peta
-            if (!marker) {
-                marker = L.marker([lat, lng]).addTo(map);
-                circle = L.circle([lat, lng], { radius: accuracy, color: '#58a6ff', fillColor: '#58a6ff', fillOpacity: 0.2 }).addTo(map);
-                map.setView([lat, lng], 17);
-            } else {
-                marker.setLatLng([lat, lng]);
-                circle.setLatLng([lat, lng]);
-                circle.setRadius(accuracy);
-                map.setView([lat, lng]); 
-            }
-
-            // Cek apakah jarak udah pindah lebih dari 20 meter
-            let jarakPindah = 0;
-            if (lastLat !== null && lastLng !== null) {
-                jarakPindah = hitungJarak(lastLat, lastLng, lat, lng);
-            }
-
-            // Cuma narik API alamat kalau pindah > 20 meter atau baru pertama kali buka
-            if (lastLat === null || jarakPindah > 20) {
-                lastLat = lat;
-                lastLng = lng;
-
-                districtEl.innerText = "Memperbarui lokasi...";
-                
-                try {
-                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
-                    const data = await response.json();
-                    
-                    if(data && data.address) {
-                        const addr = data.address;
-                        const district = addr.suburb || addr.village || addr.city_district || addr.county || addr.city || "Tidak diketahui";
-                        
-                        districtEl.innerText = district;
-                        postcodeEl.innerText = addr.postcode || "Tidak diketahui";
-                        addressEl.innerText = data.display_name;
-                    }
-                } catch (err) {
-                    console.error("API Limit kena block sementara:", err);
-                    districtEl.innerText = "Gagal memuat ulang detail area.";
-                }
-            }
-        }
-
-        function handleError(err) {
-            if(err.code === 1) {
-                statusEl.innerText = "🔴 Akses ditolak! Izinkan lokasi di browser.";
-            } else {
-                statusEl.innerText = "🔴 Gagal mendapat sinyal GPS: " + err.message;
-            }
-            statusEl.style.color = "#ff7b72";
-        }
-    </script>
-</body>
-</html>                circle.setLatLng([lat, lng]);
-                circle.setRadius(accuracy);
-                map.setView([lat, lng]); // Biar map ngikutin lu pas gerak
-            }
-
-            // Ambil detail alamat pake API Nominatim
-            try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
-                const data = await response.json();
-                
-                if(data && data.address) {
-                    const addr = data.address;
-                    // Filter kecamatan/area
-                    const district = addr.suburb || addr.village || addr.city_district || addr.county || addr.city || "Tidak diketahui";
-                    
-                    districtEl.innerText = district;
-                    postcodeEl.innerText = addr.postcode || "Tidak diketahui";
-                    addressEl.innerText = data.display_name;
-                }
-            } catch (err) {
-                console.error("Gagal reverse geocoding:", err);
-            }
-        }
-
-        function handleError(err) {
-            if(err.code === 1) {
-                statusEl.innerText = "🔴 Akses ditolak! Lu harus izinin popup lokasi di browser.";
-            } else {
-                statusEl.innerText = "🔴 Gagal mendapat sinyal GPS: " + err.message;
-            }
-            statusEl.style.color = "#ff7b72";
-        }
-    </script>
 </body>
 </html>
