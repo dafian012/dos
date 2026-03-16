@@ -1,88 +1,145 @@
-from mcstatus.server import MinecraftServer
-import threading
-import concurrent.futures
-import time
-import logging
-import random
-
-# Setup logging untuk mencatat hasil ke dalam file log
-logging.basicConfig(filename='server_status.log', level=logging.INFO, format='%(asctime)s - %(message)s')
-
-# Fungsi untuk mendapatkan status server Minecraft dan mencatat latency
-def send_request(request_id, server_address, server_port):
-    server = MinecraftServer.lookup(f"{server_address}:{server_port}")
-    try:
-        # Mencatat waktu mulai untuk mengukur latency
-        start_time = time.time()
-        status = server.status()
-        latency = (time.time() - start_time) * 1000  # Latency dalam milidetik
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Location Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0d1117; color: #c9d1d9; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+        h1 { margin-bottom: 5px; color: #58a6ff; text-transform: uppercase; letter-spacing: 2px; }
+        .status { text-align: center; color: #d2a8ff; font-weight: bold; margin-bottom: 20px; font-size: 0.9em; }
         
-        # Menampilkan status server di konsol
-        print(f"Request {request_id} berhasil: Server is online, {status.players.online} players online. Max players: {status.players.max}. Latency: {latency:.2f} ms")
+        .container { display: flex; flex-direction: column; width: 100%; max-width: 800px; gap: 20px; }
         
-        # Menampilkan status login pemain (misalnya nama pemain yang online)
-        if status.players.online > 0 and status.players.sample:
-            print(f"Request {request_id}: Pemain online:")
-            for player in status.players.sample:
-                print(f" - {player.name}")
+        #map { height: 400px; width: 100%; border-radius: 12px; border: 1px solid #30363d; box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 1; }
         
-        # Logging status ke file
-        logging.info(f"Request {request_id} berhasil: Server is online, {status.players.online} players online. Max players: {status.players.max}. Latency: {latency:.2f} ms")
-        if status.players.online > 0 and status.players.sample:
-            for player in status.players.sample:
-                logging.info(f"Pemain online: {player.name}")
+        .info-panel { background: #161b22; padding: 25px; border-radius: 12px; border: 1px solid #30363d; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .info-item { margin-bottom: 15px; border-bottom: 1px solid #21262d; padding-bottom: 10px; }
+        .info-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         
-    except Exception as e:
-        # Jika gagal menghubungi server
-        print(f"Request {request_id}: Error: Request gagal menghubungi server. Error: {e}")
-        logging.error(f"Request {request_id}: Error: Request gagal menghubungi server. Error: {e}")
+        .label { font-size: 0.85em; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .value { font-size: 1.1em; font-weight: 600; color: #ffffff; word-wrap: break-word; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        .btn { flex: 1; background: #238636; color: #ffffff; padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; text-align: center; transition: 0.2s; }
+        .btn:hover { background: #2ea043; }
+    </style>
+</head>
+<body>
 
-# Fungsi untuk melakukan uji beban menggunakan ThreadPoolExecutor
-def stress_test(server_address, server_port, num_requests):
-    # Tentukan jumlah thread secara dinamis berdasarkan jumlah permintaan
-    max_threads = min(500, num_requests)  # Tingkatkan hingga 500 thread per permintaan
-
-    print(f"Menjalankan {num_requests} permintaan dengan {max_threads} thread bersamaan...")
+    <h1>🌐 System Tracker</h1>
+    <div class="status" id="status">Menginisialisasi modul GPS...</div>
     
-    # Menggunakan ThreadPoolExecutor untuk mengelola thread secara efisien
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:  # Maksimal 500 thread
-        futures = [executor.submit(send_request, i, server_address, server_port) for i in range(1, num_requests + 1)]
-        for future in concurrent.futures.as_completed(futures):
-            try:
-                future.result()  # Menunggu hasil dari setiap thread
-            except Exception as e:
-                print(f"Error in thread: {e}")
-                logging.error(f"Error in thread: {e}")
+    <div class="container">
+        <div id="map"></div>
+        
+        <div class="info-panel">
+            <div class="info-item">
+                <div class="label">Koordinat (Lat, Lng)</div>
+                <div class="value" id="coords">Menunggu data...</div>
+            </div>
+            <div class="info-item">
+                <div class="label">Kecamatan / Area</div>
+                <div class="value" id="district">Menunggu data...</div>
+            </div>
+            <div class="info-item">
+                <div class="label">Kode Pos</div>
+                <div class="value" id="postcode">Menunggu data...</div>
+            </div>
+            <div class="info-item">
+                <div class="label">Alamat Lengkap</div>
+                <div class="value" id="address">Menunggu data...</div>
+            </div>
+            
+            <div class="btn-group">
+                <a id="gmaps-link" href="#" target="_blank" class="btn" style="display: none;">📍 Buka di Google Maps</a>
+            </div>
+        </div>
+    </div>
 
-# Fungsi untuk meminta input dari pengguna
-def get_user_input():
-    print("Masukkan alamat server Minecraft (misal: minecraft.my.id atau 192.168.1.10): ")
-    server_address = input().strip()
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map, marker, circle;
+        
+        // Setup awal map (tampilan default)
+        map = L.map('map').setView([-2.5489, 118.0149], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
 
-    print("Masukkan port server Minecraft (default 25565): ")
-    try:
-        server_port = int(input().strip())
-    except ValueError:
-        server_port = 25565  # Jika input invalid, gunakan port default 25565
+        const statusEl = document.getElementById('status');
+        const coordsEl = document.getElementById('coords');
+        const districtEl = document.getElementById('district');
+        const postcodeEl = document.getElementById('postcode');
+        const addressEl = document.getElementById('address');
+        const gmapsLinkEl = document.getElementById('gmaps-link');
 
-    return server_address, server_port
+        // Fungsi utama buat mantau lokasi real-time
+        if ("geolocation" in navigator) {
+            navigator.geolocation.watchPosition(updateLocation, handleError, {
+                enableHighAccuracy: true, // Paksa cari sinyal GPS paling akurat
+                maximumAge: 0,
+                timeout: 10000
+            });
+        } else {
+            statusEl.innerText = "Browser lu ga support Geolocation.";
+            statusEl.style.color = "#ff7b72";
+        }
 
-# Ambil input dari pengguna
-server_address, server_port = get_user_input()
+        async function updateLocation(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
 
-# Tentukan jumlah permintaan yang ingin dikirim
-num_requests = int(input("Masukkan jumlah permintaan yang ingin dikirim (misalnya 1000): ").strip())
+            statusEl.innerText = "🟢 Sinyal terkunci. Melacak secara real-time.";
+            statusEl.style.color = "#3fb950";
 
-# Memulai waktu untuk mengukur durasi uji coba
-start_time = time.time()
+            // Update UI Koordinat & Tombol Google Maps
+            coordsEl.innerText = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            gmapsLinkEl.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+            gmapsLinkEl.style.display = "block";
 
-# Mulai pengujian beban
-stress_test(server_address, server_port, num_requests)
+            // Update Map Maker
+            if (!marker) {
+                marker = L.marker([lat, lng]).addTo(map);
+                circle = L.circle([lat, lng], { radius: accuracy, color: '#58a6ff', fillColor: '#58a6ff', fillOpacity: 0.2 }).addTo(map);
+                map.setView([lat, lng], 17);
+            } else {
+                marker.setLatLng([lat, lng]);
+                circle.setLatLng([lat, lng]);
+                circle.setRadius(accuracy);
+                map.setView([lat, lng]); // Biar map ngikutin lu pas gerak
+            }
 
-# Waktu selesai pengujian
-end_time = time.time()
+            // Ambil detail alamat pake API Nominatim
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+                const data = await response.json();
+                
+                if(data && data.address) {
+                    const addr = data.address;
+                    // Filter kecamatan/area
+                    const district = addr.suburb || addr.village || addr.city_district || addr.county || addr.city || "Tidak diketahui";
+                    
+                    districtEl.innerText = district;
+                    postcodeEl.innerText = addr.postcode || "Tidak diketahui";
+                    addressEl.innerText = data.display_name;
+                }
+            } catch (err) {
+                console.error("Gagal reverse geocoding:", err);
+            }
+        }
 
-# Mengukur total waktu pengujian
-total_time = end_time - start_time
-print(f"Total waktu untuk mengirim {num_requests} permintaan: {total_time:.2f} detik")
-logging.info(f"Total waktu untuk mengirim {num_requests} permintaan: {total_time:.2f} detik")
+        function handleError(err) {
+            if(err.code === 1) {
+                statusEl.innerText = "🔴 Akses ditolak! Lu harus izinin popup lokasi di browser.";
+            } else {
+                statusEl.innerText = "🔴 Gagal mendapat sinyal GPS: " + err.message;
+            }
+            statusEl.style.color = "#ff7b72";
+        }
+    </script>
+</body>
+</html>
