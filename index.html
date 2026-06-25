@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📍 Lokasi Lengkap & Akurat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #0b1a2e, #1a2f44);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 40px;
+            padding: 35px 30px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s;
+        }
+
+        h1 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.9rem;
+            font-weight: 600;
+            color: #f0f9ff;
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
+        }
+
+        .sub {
+            color: #94b8d6;
+            font-size: 0.95rem;
+            border-left: 3px solid #3b82f6;
+            padding-left: 14px;
+            margin-bottom: 28px;
+            opacity: 0.9;
+        }
+
+        .loc-box {
+            background: rgba(0, 20, 40, 0.5);
+            border-radius: 28px;
+            padding: 25px 22px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .row {
+            display: flex;
+            align-items: baseline;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .row:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            width: 120px;
+            font-weight: 500;
+            color: #9bbcd9;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .value {
+            flex: 1;
+            color: #e6f2ff;
+            font-weight: 500;
+            font-size: 1.05rem;
+            word-break: break-word;
+        }
+
+        .value .highlight {
+            color: #7abfff;
+            font-weight: 600;
+        }
+
+        .badge {
+            background: #1e3a5f;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            color: #b6d6ff;
+            margin-left: 10px;
+            border: 1px solid #2a4a72;
+        }
+
+        .status {
+            margin-top: 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .accuracy {
+            background: #0a1e30;
+            padding: 8px 22px;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            color: #b0d0ec;
+            border: 1px solid #264b6b;
+        }
+
+        .accuracy span {
+            color: #6bb8ff;
+            font-weight: 600;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #1d3b57;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #d6eaff;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #2d5072;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #2a4f72;
+            transform: scale(1.02);
+            border-color: #5a8fc9;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            border-color: #3b82f6;
+            color: white;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: #3b82f6;
+            border-color: #60a5fa;
+        }
+
+        .map-link {
+            margin-top: 18px;
+            text-align: center;
+        }
+
+        .map-link a {
+            color: #7abfff;
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 2px dotted #2a5a82;
+            padding-bottom: 2px;
+            transition: 0.2s;
+        }
+
+        .map-link a:hover {
+            color: #aad0ff;
+            border-bottom-color: #5a8fc9;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid #2a4a6a;
+            border-top: 3px solid #6bb8ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #coords-status {
+            color: #aac9e5;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 550px) {
+            .card { padding: 20px 15px; }
+            .row { flex-wrap: wrap; gap: 4px; }
+            .label { width: 100%; font-size: 0.8rem; }
+            .value { font-size: 1rem; }
+            h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>
+        <span>📍</span> Lokasi Lengkap
+    </h1>
+    <div class="sub">✅ Data real-time · GPS + IP fallback</div>
+
+    <div class="loc-box">
+        <!-- LATITUDE -->
+        <div class="row">
+            <div class="label">🌐 Latitude</div>
+            <div class="value" id="lat">—</div>
+        </div>
+        <!-- LONGITUDE -->
+        <div class="row">
+            <div class="label">🌐 Longitude</div>
+            <div class="value" id="lng">—</div>
+        </div>
+        <!-- ALAMAT (reverse geocoding) -->
+        <div class="row">
+            <div class="label">🏠 Alamat</div>
+            <div class="value" id="address">
+                <span style="color:#8ab4d6;">Mengambil data...</span>
+            </div>
+        </div>
+        <!-- AKURASI -->
+        <div class="row">
+            <div class="label">📏 Akurasi</div>
+            <div class="value" id="accuracy-value">
+                <span style="color:#8ab4d6;">menunggu...</span>
+            </div>
+        </div>
+        <!-- SUMBER -->
+        <div class="row">
+            <div class="label">📡 Sumber</div>
+            <div class="value" id="source">—</div>
+        </div>
+    </div>
+
+    <div class="status">
+        <div class="accuracy" id="coords-status">
+            <span>⏳</span> Memperbarui...
+        </div>
+        <div class="btn-group">
+            <button class="btn" id="refreshBtn">⟳ Segarkan</button>
+            <button class="btn btn-primary" id="mapBtn">🗺 Buka Peta</button>
+        </div>
+    </div>
+
+    <div class="map-link" id="mapLinkContainer">
+        <a href="#" id="mapLink" target="_blank">📍 Lihat di Google Maps</a>
+    </div>
+</div>
+
+<script>
+    (function() {
+        'use strict';
+
+        // --- DOM refs ---
+        const latEl = document.getElementById('lat');
+        const lngEl = document.getElementById('lng');
+        const addressEl = document.getElementById('address');
+        const accuracyEl = document.getElementById('accuracy-value');
+        const sourceEl = document.getElementById('source');
+        const statusEl = document.getElementById('coords-status');
+        const mapLink = document.getElementById('mapLink');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const mapBtn = document.getElementById('mapBtn');
+
+        // --- state ---
+        let currentLat = null;
+        let currentLng = null;
+        let currentAccuracy = null;
+        let currentSource = null;
+        let isUpdating = false;
+
+        // --- helper: update UI ---
+        function updateUI(lat, lng, accuracy, source, address) {
+            currentLat = lat;
+            currentLng = lng;
+            currentAccuracy = accuracy;
+            currentSource = source;
+
+            latEl.textContent = lat !== null ? lat.toFixed(7) : '—';
+            lngEl.textContent = lng !== null ? lng.toFixed(7) : '—';
+
+            if (accuracy !== null && accuracy !== undefined) {
+                accuracyEl.textContent = accuracy < 1 ? '< 1 meter' : accuracy.toFixed(1) + ' meter';
+            } else {
+                accuracyEl.textContent = 'tidak tersedia';
+            }
+
+            sourceEl.textContent = source || '—';
+
+            // address
+            if (address) {
+                addressEl.innerHTML = address;
+            } else {
+                addressEl.innerHTML = '<span style="color:#8ab4d6;">alamat tidak tersedia</span>';
+            }
+
+            // map link
+            if (lat !== null && lng !== null) {
+                const url = `https://www.google.com/maps?q=${lat},${lng}`;
+                mapLink.href = url;
+                mapLink.textContent = `📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            } else {
+                mapLink.href = '#';
+                mapLink.textContent = '📍 Lokasi tidak tersedia';
+            }
+
+            // status
+            if (lat !== null && lng !== null) {
+                statusEl.innerHTML = `<span>✅</span> Terbaru ${new Date().toLocaleTimeString()}`;
+            } else {
+                statusEl.innerHTML = `<span>⏳</span> Menunggu lokasi...`;
+            }
+        }
+
+        // --- reverse geocoding (Nominatim) ---
+        async function fetchAddress(lat, lng) {
+            if (lat === null || lng === null) return null;
+            try {
+                const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=id`;
+                const resp = await fetch(url, {
+                    headers: { 'User-Agent': 'LocationApp/1.0' }
+                });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const data = await resp.json();
+                if (data && data.display_name) {
+                    // potong agar tidak terlalu panjang
+                    let full = data.display_name;
+                    // jika terlalu panjang, ambil bagian jalan + kota + provinsi
+                    const parts = full.split(',').map(s => s.trim());
+                    if (parts.length > 5) {
+                        // ambil 4-5 bagian pertama (jalan, kelurahan, kecamatan, kota)
+                        const short = parts.slice(0, 5).join(', ');
+                        return short;
+                    }
+                    return full;
+                }
+                return null;
+            } catch (e) {
+                console.warn('Reverse geocoding gagal:', e);
+                return null;
+            }
+        }
+
+        // --- ambil lokasi via GPS (dengan timeout) ---
+        function getLocationFromGPS() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error('GPS tidak didukung'));
+                    return;
+                }
+
+                const timeoutId = setTimeout(() => {
+                    reject(new Error('Timeout GPS (15s)'));
+                }, 15000);
+
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        clearTimeout(timeoutId);
+                        const coords = pos.coords;
+                        resolve({
+                            lat: coords.latitude,
+                            lng: coords.longitude,
+                            accuracy: coords.accuracy,
+                            source: 'GPS (perangkat)'
+                        });
+                    },
+                    (err) => {
+                        clearTimeout(timeoutId);
+                        reject(err);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 12000,
+                        maximumAge: 30000
+                    }
+                );
+            });
+        }
+
+        // --- IP geolocation fallback (ipapi.co) ---
+        async function getLocationFromIP() {
+            try {
+                const resp = await fetch('https://ipapi.co/json/', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!resp.ok) throw new Error('IP API error');
+                const data = await resp.json();
+                if (data.latitude && data.longitude) {
+                    return {
+                        lat: parseFloat(data.latitude),
+                        lng: parseFloat(data.longitude),
+                        accuracy: 50, // IP biasanya ~50-100km
+                        source: 'IP Geolocation (cadangan)'
+                    };
+                }
+                throw new Error('Tidak ada koordinat dari IP');
+            } catch (e) {
+                console.warn('IP geolocation gagal:', e);
+                return null;
+            }
+        }
+
+        // --- proses utama: dapatkan lokasi terbaik ---
+        async function updateLocation() {
+            if (isUpdating) return;
+            isUpdating = true;
+
+            statusEl.innerHTML = `<span>⏳</span> Mengambil lokasi...`;
+            addressEl.innerHTML = '<span style="color:#8ab4d6;">⏳ mencari alamat...</span>';
+
+            let result = null;
+            let usedSource = '';
+
+            // 1. coba GPS
+            try {
+                result = await getLocationFromGPS();
+                usedSource = result.source;
+            } catch (gpsErr) {
+                console.warn('GPS gagal:', gpsErr.message);
+                // 2. fallback IP
+                try {
+                    const ipResult = await getLocationFromIP();
+                    if (ipResult) {
+                        result = ipResult;
+                        usedSource = ipResult.source + ' (GPS gagal)';
+                    }
+                } catch (ipErr) {
+                    console.warn('IP fallback gagal:', ipErr.message);
+                }
+            }
+
+            if (result && result.lat !== null && result.lng !== null) {
+                currentLat = result.lat;
+                currentLng = result.lng;
+                currentAccuracy = result.accuracy || null;
+                currentSource = usedSource || 'unknown';
+
+                // update UI dasar dulu
+                updateUI(currentLat, currentLng, currentAccuracy, currentSource, '⏳ mencari alamat...');
+
+                // ambil alamat (reverse geocoding)
+                const addr = await fetchAddress(currentLat, currentLng);
+                if (addr) {
+                    updateUI(currentLat, currentLng, currentAccuracy, currentSource, addr);
+                } else {
+                    updateUI(currentLat, currentLng, currentAccuracy, currentSource, '🌍 alamat tidak ditemukan');
+                }
+
+                statusEl.innerHTML = `<span>✅</span> Lokasi diperbarui (${usedSource})`;
+            } else {
+                // gagal total
+                latEl.textContent = '—';
+                lngEl.textContent = '—';
+                accuracyEl.textContent = 'gagal';
+                sourceEl.textContent = '—';
+                addressEl.innerHTML = '<span style="color:#ff8a80;">⚠️ Gagal mendapatkan lokasi. Periksa koneksi & izin GPS.</span>';
+                statusEl.innerHTML = `<span>❌</span> Gagal mengambil lokasi`;
+                mapLink.href = '#';
+                mapLink.textContent = '📍 Lokasi tidak tersedia';
+            }
+
+            isUpdating = false;
+        }
+
+        // --- tombol refresh ---
+        refreshBtn.addEventListener('click', () => {
+            updateLocation();
+        });
+
+        // --- tombol buka peta ---
+        mapBtn.addEventListener('click', () => {
+            if (currentLat !== null && currentLng !== null) {
+                window.open(`https://www.google.com/maps?q=${currentLat},${currentLng}`, '_blank');
+            } else {
+                alert('Lokasi belum tersedia. Tekan "Segarkan" terlebih dahulu.');
+            }
+        });
+
+        // --- inisialisasi ---
+        updateLocation();
+
+        // refresh otomatis tiap 60 detik (opsional)
+        setInterval(() => {
+            if (!isUpdating) {
+                updateLocation();
+            }
+        }, 60000);
+
+    })();
+</script>
+</body>
+</html>
