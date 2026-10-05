@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spaceman Crash - Lobby</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="lobby-body">
+
+<div class="lobby-container">
+  <div class="lobby-header">
+    <img src="astronaut.svg" alt="Astronaut" class="lobby-astronaut">
+    <h1 class="lobby-title">🚀 SPACEMAN CRASH</h1>
+    <p class="lobby-sub">Simulasi Game Crash - Daftar Sekarang</p>
+  </div>
+
+  <div class="lobby-form">
+    <label>Nama Pemain</label>
+    <input type="text" id="loginName" placeholder="Masukkan nama lu..." maxlength="15" autocomplete="off">
+
+    <div class="lobby-info">
+      <div class="info-item">
+        <span class="info-icon">💰</span>
+        <div>
+          <b>Bonus Daftar</b>
+          <small>Rp50.000 langsung masuk</small>
+        </div>
+      </div>
+      <div class="info-item">
+        <span class="info-icon">🎁</span>
+        <div>
+          <b>Bonus Harian</b>
+          <small>Rp10.000 setiap 24 jam</small>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="doLogin()">MASUK & MAIN</button>
+    <p class="lobby-note">Data tersimpan di browser lu sendiri 🔒</p>
+  </div>
+</div>
+
+<script src="lobby.js"></script>
+</body>
+</html>
