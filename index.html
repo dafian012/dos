@@ -1,46 +1,176 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spaceman Crash - Lobby</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<title>BLOCK AI SCANNER</title>
+<style>
+:root{color-scheme:dark;--bg:#101827;--panel:#192538;--panel2:#223149;--line:#34445e;--text:#eef4ff;--muted:#aab8ce;--mint:#53e0a0;--yellow:#ffd166;--red:#ff7777}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -15%,#29435b 0,#101827 48%);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);min-height:100vh}
+main{max-width:760px;margin:auto;padding:22px 15px 40px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:18px}.logo{width:45px;height:45px;border-radius:14px;background:linear-gradient(135deg,#53e0a0,#20a878);display:grid;place-items:center;color:#082419;font-size:24px;font-weight:900;box-shadow:0 8px 25px #1bc18a33}
+h1{font-size:20px;letter-spacing:1px;margin:0}header p{margin:2px 0 0;color:var(--muted);font-size:12px}
+.card{background:linear-gradient(180deg,#1b2a40,#172337);border:1px solid var(--line);border-radius:18px;padding:15px;margin:13px 0;box-shadow:0 12px 30px #0002}
+h2{font-size:15px;margin:0 0 10px}.sub{font-size:12px;color:var(--muted);line-height:1.5;margin:5px 0 12px}
+button{border:0;border-radius:12px;padding:12px 14px;font-size:14px;font-weight:750;cursor:pointer;color:#092318;background:var(--mint);width:100%}button.secondary{background:#2a3b55;color:var(--text);border:1px solid #405573}button.warn{background:#3a2c28;color:#ffd6c9;border:1px solid #6a493e}button:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.status{font-size:12px;color:var(--muted);margin-top:9px;display:flex;gap:8px;align-items:center}.dot{width:8px;height:8px;border-radius:50%;background:#8291a7}.dot.on{background:var(--mint);box-shadow:0 0 10px var(--mint)}
+video{width:100%;max-height:360px;background:#080e18;border-radius:12px;display:block;object-fit:contain}
+.previewWrap{position:relative;touch-action:pan-y}.hint{font-size:11px;color:var(--muted);margin-top:8px}
+.board{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;width:min(100%,390px);margin:10px auto;padding:7px;background:#493326;border-radius:12px;aspect-ratio:1}
+.cell{border-radius:4px;background:#684a36;border:1px solid #79573f;aspect-ratio:1;cursor:pointer}
+.cell.filled{background:linear-gradient(135deg,#68d99b,#248c62);border-color:#82e7ae;box-shadow:inset 0 2px 4px #ffffff33}
+.cell.suggest{outline:3px solid var(--yellow);outline-offset:-3px;background:#e5b84b}
+.cell.cleared{background:#315c50}
+.legend{display:flex;gap:12px;justify-content:center;font-size:11px;color:var(--muted)}.swatch{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;background:#68d99b}.swatch.y{background:var(--yellow)}
+.pieces{display:flex;gap:10px;justify-content:space-around;flex-wrap:wrap}.piece{background:#243650;border:1px solid #405573;border-radius:12px;padding:10px;min-width:88px;text-align:center}.piece b{display:block;font-size:12px;margin-bottom:7px}.mini{display:grid;gap:3px;justify-content:center}.mini span{width:17px;height:17px;border-radius:3px;background:#54c98c}.mini span.off{background:transparent}
+.result{background:#122f2a;border:1px solid #28664f;border-radius:12px;padding:12px;font-size:13px;line-height:1.5}
+.small{font-size:11px;color:var(--muted)}.footer{text-align:center;color:#8090a8;font-size:11px;margin-top:20px}
+input[type=file]{display:none}
+@media(min-width:600px){.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{padding:18px}}
+</style>
 </head>
-<body class="lobby-body">
+<body>
+<main>
+<header><div class="logo">▦</div><div><h1>BLOCK AI SCANNER</h1><p>Live board reader · Puzzle assistant</p></div></header>
 
-<div class="lobby-container">
-  <div class="lobby-header">
-    <img src="astronaut.svg" alt="Astronaut" class="lobby-astronaut">
-    <h1 class="lobby-title">🚀 SPACEMAN CRASH</h1>
-    <p class="lobby-sub">Simulasi Game Crash - Daftar Sekarang</p>
-  </div>
+<section class="card">
+<h2>① Hubungkan layar game</h2>
+<p class="sub">Tekan mulai, lalu pilih opsi berbagi layar jika Android/Chrome menawarkannya. Buka game setelah berbagi dimulai bila perangkat mengizinkan.</p>
+<div class="actions">
+<button id="start">▶ Mulai scan layar</button>
+<button id="stop" class="secondary" disabled>■ Hentikan</button>
+</div>
+<div class="status"><span id="dot" class="dot"></span><span id="status">Belum terhubung</span></div>
+<div id="videoWrap" style="display:none;margin-top:12px">
+  <video id="video" autoplay playsinline muted></video>
+  <p class="hint">Pratinjau layar yang dibagikan. Pengambilan layar hanya berjalan setelah izin diberikan.</p>
+  <button id="capture" style="margin-top:8px">◎ Ambil frame & pindai papan</button>
+</div>
+</section>
 
-  <div class="lobby-form">
-    <label>Nama Pemain</label>
-    <input type="text" id="loginName" placeholder="Masukkan nama lu..." maxlength="15" autocomplete="off">
-
-    <div class="lobby-info">
-      <div class="info-item">
-        <span class="info-icon">💰</span>
-        <div>
-          <b>Bonus Daftar</b>
-          <small>Rp50.000 langsung masuk</small>
-        </div>
-      </div>
-      <div class="info-item">
-        <span class="info-icon">🎁</span>
-        <div>
-          <b>Bonus Harian</b>
-          <small>Rp10.000 setiap 24 jam</small>
-        </div>
-      </div>
-    </div>
-
-    <button class="btn-primary" onclick="doLogin()">MASUK & MAIN</button>
-    <p class="lobby-note">Data tersimpan di browser lu sendiri 🔒</p>
-  </div>
+<div class="grid2">
+<section class="card">
+<h2>② Papan 8 × 8</h2>
+<p class="sub">Hasil scan akan mengisi papan. Jika deteksi kurang tepat, ketuk kotak untuk mengubahnya secara manual.</p>
+<div class="board" id="board" aria-label="Papan permainan"></div>
+<div class="legend"><span><i class="swatch"></i>Terisi</span><span><i class="swatch y"></i>Rekomendasi</span></div>
+<div class="actions" style="margin-top:12px">
+<button class="secondary" id="clear">Kosongkan papan</button>
+<button class="secondary" id="sample">Muat contoh</button>
+</div>
+</section>
+<section class="card">
+<h2>③ Blok yang tersedia</h2>
+<p class="sub">Pilih bentuk yang sedang muncul di bawah game. Bentuk awal mengikuti contoh pada gambar.</p>
+<div class="pieces" id="pieces"></div>
+<div class="small" style="margin-top:10px">Blok dapat diputar? Versi awal menganggap bentuk tidak diputar.</div>
+</section>
 </div>
 
-<script src="lobby.js"></script>
+<section class="card">
+<h2>④ Cari langkah terbaik</h2>
+<p class="sub">Solver mencoba semua urutan penempatan untuk blok yang dipilih, termasuk membersihkan baris/kolom penuh.</p>
+<button id="solve">✦ CARI SOLUSI</button>
+<div id="result" class="small" style="margin-top:10px">Belum ada solusi dihitung.</div>
+</section>
+
+<section class="card">
+<h2>Catatan Android</h2>
+<p class="sub">Fitur berbagi layar bergantung pada versi Android dan browser. Banyak browser Android membatasi pemilihan layar/aplikasi lain atau menghentikan capture saat berpindah aplikasi. Halaman ini belum bisa berjalan sebagai layanan latar belakang dan tidak dapat menekan/menaruh blok otomatis di game.</p>
+<p class="sub">Untuk scan yang lebih akurat, versi berikutnya perlu kalibrasi area papan dan deteksi bentuk blok dari frame game.</p>
+</section>
+<div class="footer">BLOCK AI SCANNER · Prototipe lokal · Tidak mengunggah video ke server</div>
+</main>
+<script>
+const N=8;
+let cells=Array(64).fill(false);
+let shapes=[
+ {name:"Garis 4",pts:[[0,0],[1,0],[2,0],[3,0]]},
+ {name:"Kotak 3×2",pts:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]]},
+ {name:"L 4",pts:[[0,0],[1,0],[1,1],[1,2]]}
+];
+let selected=[],solution=null,stream=null;
+const board=document.getElementById('board'),result=document.getElementById('result');
+function drawBoard(){
+ board.innerHTML='';
+ cells.forEach((v,i)=>{let d=document.createElement('button');d.className='cell'+(v?' filled':'');d.setAttribute('aria-label',`Baris ${Math.floor(i/8)+1}, kolom ${i%8+1}`);d.onclick=()=>{cells[i]=!cells[i];solution=null;drawBoard()};board.appendChild(d)});
+}
+function drawPieces(){
+ const root=document.getElementById('pieces');root.innerHTML='';
+ shapes.forEach((s,i)=>{
+  let p=document.createElement('div');p.className='piece';
+  let maxR=Math.max(...s.pts.map(x=>x[0]))+1,maxC=Math.max(...s.pts.map(x=>x[1]))+1;
+  let m=document.createElement('div');m.className='mini';m.style.gridTemplateColumns=`repeat(${maxC},17px)`;
+  for(let r=0;r<maxR;r++)for(let c=0;c<maxC;c++){let q=document.createElement('span');if(!s.pts.some(x=>x[0]===r&&x[1]===c))q.className='off';m.appendChild(q)}
+  let b=document.createElement('b');b.textContent=s.name;p.append(b,m);root.appendChild(p);
+ });
+}
+function place(board0,shape,r,c){
+ let out=board0.slice();
+ for(const [dr,dc] of shape.pts){let rr=r+dr,cc=c+dc;if(rr<0||cc<0||rr>=8||cc>=8||out[rr*8+cc])return null;out[rr*8+cc]=true}
+ let fullR=[],fullC=[];
+ for(let i=0;i<8;i++){if(out.slice(i*8,i*8+8).every(Boolean))fullR.push(i);if(Array.from({length:8},(_,r)=>out[r*8+i]).every(Boolean))fullC.push(i)}
+ for(let r0 of fullR)for(let c0=0;c0<8;c0++)out[r0*8+c0]=false;
+ for(let c0 of fullC)for(let r0=0;r0<8;r0++)out[r0*8+c0]=false;
+ return {board:out,clears:fullR.length+fullC.length,rows:fullR,cols:fullC};
+}
+function solve(){
+ let best=null;
+ function dfs(b,idx,steps,score){
+  if(idx===shapes.length){if(!best||score>best.score)best={steps,score,board:b};return}
+  const s=shapes[idx];
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+   let p=place(b,s,r,c);if(!p)continue;
+   dfs(p.board,idx+1,[...steps,{name:s.name,r,c,clears:p.clears}],score+p.clears*100+s.pts.length);
+  }
+ }
+ dfs(cells,0,[],0);
+ solution=best;
+ if(!best){result.innerHTML='<div class="result">Belum ada kombinasi yang muat untuk ketiga blok. Coba ubah papan atau bentuk blok.</div>';return}
+ result.innerHTML='<div class="result"><b>Solusi ditemukan!</b><br>'+best.steps.map((s,i)=>`${i+1}. ${s.name}: mulai baris ${s.r+1}, kolom ${s.c+1}${s.clears?` · membersihkan ${s.clears} garis`:''}`).join('<br>')+'<br><br><span class="small">Ketuk “Tampilkan langkah” untuk melihat posisi blok satu per satu.</span><button id="showstep" class="secondary" style="margin-top:9px">Tampilkan langkah</button></div>';
+ document.getElementById('showstep').onclick=showSteps;
+}
+function showSteps(){
+ if(!solution)return;
+ let step=0;
+ function show(){let s=solution.steps[step];let test=place(cells,shapes[step],s.r,s.c);let nodes=[...board.children];nodes.forEach((n,i)=>n.classList.toggle('suggest',false));for(let [dr,dc] of shapes[step].pts)nodes[(s.r+dr)*8+s.c+dc].classList.add('suggest');document.getElementById('result').querySelector('.small').textContent=`Langkah ${step+1}/${solution.steps.length}: ${s.name}, baris ${s.r+1}, kolom ${s.c+1}.`;
+ let old=document.getElementById('nextstep');if(old)old.remove();let btn=document.createElement('button');btn.id='nextstep';btn.className='secondary';btn.style.marginTop='8px';btn.textContent=step===solution.steps.length-1?'Selesai':'Langkah berikutnya';btn.onclick=()=>{if(step<solution.steps.length-1){cells=test.board;drawBoard();step++;show()}else{drawBoard();btn.remove()}};document.getElementById('result').appendChild(btn)}
+ show();
+}
+document.getElementById('clear').onclick=()=>{cells=Array(64).fill(false);solution=null;drawBoard();result.textContent='Papan dikosongkan.'};
+document.getElementById('sample').onclick=()=>{cells=Array(64).fill(false);let rows=[
+'10010011','10010001','10011110','00011111',
+'00011111','10101100','00110110','01110110'];
+cells=rows.join('').split('').map(x=>x==='1');solution=null;drawBoard();result.textContent='Contoh papan dimuat. Periksa kembali kotaknya.'};
+document.getElementById('solve').onclick=solve;
+drawBoard();drawPieces();
+
+const video=document.getElementById('video'),videoWrap=document.getElementById('videoWrap');
+function setStatus(t,on=false){document.getElementById('status').textContent=t;document.getElementById('dot').classList.toggle('on',on)}
+document.getElementById('start').onclick=async()=>{
+ if(!navigator.mediaDevices?.getDisplayMedia){setStatus('Browser ini tidak menyediakan screen capture. Coba Chrome terbaru atau gunakan perangkat kedua.');return}
+ try{
+  stream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:10},audio:false});
+  video.srcObject=stream;videoWrap.style.display='block';
+  document.getElementById('start').disabled=true;document.getElementById('stop').disabled=false;
+  setStatus('Layar terhubung · siap dipindai',true);
+  stream.getVideoTracks()[0].addEventListener('ended',stopShare);
+ }catch(e){setStatus(e.name==='NotAllowedError'?'Izin berbagi layar dibatalkan.':'Tidak bisa berbagi layar di browser ini. Coba Chrome terbaru atau perangkat kedua.')}
+};
+function stopShare(){if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null;videoWrap.style.display='none';document.getElementById('start').disabled=false;document.getElementById('stop').disabled=true;setStatus('Berbagi layar dihentikan')}
+document.getElementById('stop').onclick=stopShare;
+
+document.getElementById('capture').onclick=()=>{
+ if(!video.videoWidth){setStatus('Tunggu sampai pratinjau layar muncul.');return}
+ const w=video.videoWidth,h=video.videoHeight,cv=document.createElement('canvas'),ctx=cv.getContext('2d',{willReadFrequently:true});cv.width=w;cv.height=h;ctx.drawImage(video,0,0,w,h);
+ // This initial build captures a frame but does not claim automatic board recognition.
+ const data=ctx.getImageData(0,0,w,h).data;
+ let bright=0,sat=0,count=0;
+ for(let y=Math.floor(h*.25);y<Math.floor(h*.8);y+=12)for(let x=Math.floor(w*.1);x<Math.floor(w*.9);x+=12){let k=(y*w+x)*4,R=data[k],G=data[k+1],B=data[k+2];if(Math.max(R,G,B)>145)bright++;sat+=Math.max(R,G,B)-Math.min(R,G,B);count++}
+ setStatus(`Frame berhasil diambil (${w}×${h}). Deteksi otomatis penuh belum aktif; atur papan dengan mengetuk kotak.`);
+ result.innerHTML='<div class="result">Frame layar berhasil diambil. Prototipe ini sudah dapat berbagi layar, tetapi pengenalan papan otomatis dari berbagai tampilan game masih memerlukan kalibrasi area papan. Gunakan grid di samping untuk mengoreksi kondisi papan, lalu jalankan solver.</div>';
+};
+</script>
 </body>
 </html>
